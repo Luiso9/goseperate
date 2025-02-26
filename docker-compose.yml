@@ -1,0 +1,12 @@
+services:
+  backend:
+    build:
+      context: ./backend  
+      dockerfile: Dockerfile
+    container_name: go_backend
+    ports:
+      - "9330:9330"
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/extracted:/app/extracted
+    restart: always
