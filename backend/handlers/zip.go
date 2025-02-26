@@ -12,7 +12,13 @@ import (
 
 func DownloadZip(c *gin.Context) {
 	id := c.Param("id")
-	zipPath := filepath.Join("extracted", id+".zip")
+	sourceDir := filepath.Join("extracted", id)
+	zipPath := sourceDir + ".zip"
+
+	if _, err := os.Stat(sourceDir); os.IsNotExist(err) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No extracted files found"})
+		return
+	}
 
 	zipFile, err := os.Create(zipPath)
 	if err != nil {
@@ -22,20 +28,46 @@ func DownloadZip(c *gin.Context) {
 	defer zipFile.Close()
 
 	zipWriter := zip.NewWriter(zipFile)
-	defer zipWriter.Close()
 
-	files, _ := os.ReadDir(filepath.Join("extracted", id))
-	for _, file := range files {
-		f, _ := os.Open(filepath.Join("extracted", id, file.Name()))
-		defer f.Close()
-
-		w, _ := zipWriter.Create(file.Name())
-		io.Copy(w, f) // Copy file data to ZIP
+	files, err := os.ReadDir(sourceDir)
+	if err != nil {
+		zipWriter.Close()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read extracted files"})
+		return
 	}
+
+	for _, file := range files {
+		filePath := filepath.Join(sourceDir, file.Name())
+		srcFile, err := os.Open(filePath)
+		if err != nil {
+			zipWriter.Close()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to open extracted file"})
+			return
+		}
+
+		zipEntry, err := zipWriter.Create(file.Name())
+		if err != nil {
+			srcFile.Close()
+			zipWriter.Close()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to write file to ZIP"})
+			return
+		}
+
+		_, err = io.Copy(zipEntry, srcFile)
+		srcFile.Close()
+		if err != nil {
+			zipWriter.Close()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to copy file to ZIP"})
+			return
+		}
+	}
+
+	zipWriter.Close()
 
 	c.File(zipPath)
 
-	// Cleanup
-	os.RemoveAll(filepath.Join("extracted", id))
-	os.Remove(zipPath)
+	go func() {
+		os.RemoveAll(sourceDir)
+		os.Remove(zipPath)
+	}()
 }
