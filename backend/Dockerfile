@@ -1,20 +1,15 @@
-FROM golang:1.24-bookworm as BASE
+# Use a lightweight base image with Go
+FROM gocv:latest
 
-# Set working directory
+# Set the working directory inside the container
 WORKDIR /app
 
-# copy go.mod and go.sum
-COPY go.mod go.sum ./
-
-RUN go mod download
-
+# Copy everything from the current directory into /app inside the container
 COPY . .
 
-# build
+# Build the Go application
 RUN go build -o goseperate
 
-# Expose the port
-EXPOSE 8080
+# Command to run the binary
+CMD ["./goseperate"]
 
-# Command to run the app
-CMD ["/app/goseperate"]
