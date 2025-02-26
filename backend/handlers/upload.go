@@ -30,7 +30,6 @@ func UploadImage(c *gin.Context) {
 		return
 	}
 
-	// If no file was uploaded, check for image_url
 	var json struct {
 		ImageURL string `json:"image_url"`
 	}
@@ -39,7 +38,6 @@ func UploadImage(c *gin.Context) {
 		return
 	}
 
-	// Fetch image from URL
 	resp, err := http.Get(json.ImageURL)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to download image from URL"})
@@ -50,7 +48,7 @@ func UploadImage(c *gin.Context) {
 	id := uuid.New().String()
 	ext := filepath.Ext(json.ImageURL)
 	if ext == "" {
-		ext = ".jpg" 
+		ext = ".png" 
 	}
 	filename := id + ext
 	savePath := filepath.Join("uploads", filename)

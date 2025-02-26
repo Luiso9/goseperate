@@ -9,9 +9,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"gonum.org/v1/gonum/mat"
-	"gocv.io/x/gocv"
 	"bytes"
+	"gocv.io/x/gocv"
+	"gonum.org/v1/gonum/mat"
 )
 
 func ExtractColors(imagePath, outputDir string, k int) ([]string, error) {
@@ -154,7 +154,6 @@ func GeneratePreview(imagePath string, numColors int) ([]byte, error) {
 	img.ConvertTo(&samples, gocv.MatTypeCV32F)
 	samples = samples.Reshape(1, img.Rows()*img.Cols())
 
-	
 	criteria := gocv.NewTermCriteria(gocv.Count|gocv.EPS, 10, 1.0)
 	labels := gocv.NewMat()
 	centers := gocv.NewMat()
@@ -168,10 +167,12 @@ func GeneratePreview(imagePath string, numColors int) ([]byte, error) {
 
 	for i := 0; i < img.Rows(); i++ {
 		for j := 0; j < img.Cols(); j++ {
-			clusterIdx := labels.GetIntAt(i*img.Cols()+j, 0)
+			clusterIdx := int(labels.GetIntAt(i*img.Cols()+j, 0))
 			rgb := centers.GetVecfAt(clusterIdx, 0)
 
-			result.SetUCharAt3(i, j, uint8(rgb[2]), uint8(rgb[1]), uint8(rgb[0])) // BGR -> RGB
+			result.SetUCharAt3(i, j, 2, uint8(rgb[0])) // Set Red
+			result.SetUCharAt3(i, j, 1, uint8(rgb[1])) // Set Green
+			result.SetUCharAt3(i, j, 0, uint8(rgb[2])) // Set Blue
 		}
 	}
 
