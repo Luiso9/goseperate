@@ -3,9 +3,10 @@ package main
 import (
 	"log"
 	"os"
+	"github.com/gorilla/mux"
 
-	"github.com/gin-gonic/gin"
 	"backend/handlers"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -16,6 +17,8 @@ func main() {
 
 	// Routes
 	router.Static("/uploads", "./uploads")
+	r := mux.NewRouter()
+	r.HandleFunc("/preview/{filename}", handlers.PreviewHandler).Methods("GET")
 	router.POST("/upload", handlers.UploadImage)
 	router.POST("/process/:id", handlers.ProcessImage)
 	router.GET("/download/:id", handlers.DownloadZip)

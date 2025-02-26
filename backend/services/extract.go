@@ -140,3 +140,46 @@ func euclideanDistance(a, b []float64) float64 {
 	}
 	return sum
 }
+
+func GeneratePreview(imagePath string, numColors int) ([]byte, error) {
+	img := gocv.IMRead(imagePath, gocv.IMReadColor)
+	if img.Empty() {
+		return nil, ErrInvalidImage
+	}
+	defer img.Close()
+
+	samples := gocv.NewMat()
+	defer samples.Close()
+	img.ConvertTo(&samples, gocv.MatTypeCV32F)
+	samples = samples.Reshape(1, img.Rows()*img.Cols())
+
+	
+	criteria := gocv.NewTermCriteria(gocv.Count|gocv.EPS, 10, 1.0)
+	labels := gocv.NewMat()
+	centers := gocv.NewMat()
+	defer labels.Close()
+	defer centers.Close()
+
+	gocv.KMeans(samples, numColors, &labels, criteria, 3, gocv.KMeansRandomCenters, &centers)
+
+	result := gocv.NewMatWithSize(img.Rows(), img.Cols(), gocv.MatTypeCV8UC3)
+	defer result.Close()
+
+	for i := 0; i < img.Rows(); i++ {
+		for j := 0; j < img.Cols(); j++ {
+			clusterIdx := labels.GetIntAt(i*img.Cols()+j, 0)
+			rgb := centers.GetVecfAt(clusterIdx, 0)
+
+			result.SetUCharAt3(i, j, uint8(rgb[2]), uint8(rgb[1]), uint8(rgb[0])) // BGR -> RGB
+		}
+	}
+
+	finalImg, _ := result.ToImage()
+	buf := new(bytes.Buffer)
+	err := png.Encode(buf, finalImg, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
