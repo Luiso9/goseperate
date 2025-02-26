@@ -1,4 +1,4 @@
-FROM golang:1.24-bookworm as BASE
+FROM golang:1.24-bookworm AS base
 
 # Set working directory
 WORKDIR /app
