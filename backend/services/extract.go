@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 
 	"gonum.org/v1/gonum/mat"
-	"gonum.org/v1/gonum/stat"
 	"gocv.io/x/gocv"
 )
 
