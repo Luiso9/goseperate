@@ -90,24 +90,17 @@ func KMeans(data *mat.Dense, k int) ([][]float64, []int) {
 		}
 
 		// Update centroids
-		for i := range centroids {
-			points := []float64{}
-			for j := 0; j < rows; j++ {
-				if labels[j] == i {
-					points = append(points, mat.Row(nil, j, data)...)
-				}
-			}
-			if len(points) > 0 {
-				newCenter := mat.NewDense(len(points)/3, 3, points)
-				centroids[i] = []float64{
-					stat.Mean(newCenter.ColView(0), nil),
-					stat.Mean(newCenter.ColView(1), nil),
-					stat.Mean(newCenter.ColView(2), nil),
-				}
-			}
-		}
-	}
+    for i := 0; i < 3; i++ {
+      colVec := newCenter.colView(i)
+      colSlice := make([]float64, colVec.Len())
 
+      for j := 0; j < colVec.Len(); j++ {
+        colSlice[j] = colVec.AtVec(j)
+      }
+
+      centroids[i] = stat.Mean(colSlice, nil)
+    }
+  }
 	return centroids, labels
 }
 

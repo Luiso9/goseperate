@@ -19,6 +19,6 @@ func main() {
 	router.POST("/process/:id", handlers.ProcessImage)
 	router.GET("/download/:id", handlers.DownloadZip)
 
-	log.Println("Server running on port 8080")
-	router.Run(":8080")
+	log.Println("Server running on port 9330")
+	router.Run(":9330")
 }
