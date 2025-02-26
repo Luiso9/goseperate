@@ -2,12 +2,11 @@ package handlers
 
 import (
 	"net/http"
-	"fmt"
 	"path/filepath"
 	"strconv"
 
-	"backend/services"
 	"github.com/gin-gonic/gin"
+	"backend/services"
 )
 
 func ProcessImage(c *gin.Context) {
@@ -21,18 +20,16 @@ func ProcessImage(c *gin.Context) {
 	imagePath := filepath.Join("uploads", id+".png")
 	outputDir := filepath.Join("extracted", id)
 
-	// Debugging logs
-	fmt.Println("[DEBUG] Processing image:", imagePath)
-	fmt.Println("[DEBUG] Extracting to directory:", outputDir)
-	fmt.Println("[DEBUG] Number of colors:", numColors)
-
-	err = services.ExtractColors(imagePath, outputDir, numColors)
+	extractedFiles, err := services.ExtractColors(imagePath, outputDir, numColors)
 	if err != nil {
-		fmt.Println("[ERROR] Extraction failed:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process image", "details": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process image"})
 		return
 	}
 
-	fmt.Println("[DEBUG] Extraction complete for:", id)
-	c.JSON(http.StatusOK, gin.H{"id": id, "message": "Extraction complete", "layers": numColors})
+	c.JSON(http.StatusOK, gin.H{
+		"id":        id,
+		"message":   "Extraction complete",
+		"layers":    len(extractedFiles),
+		"extracted": extractedFiles,
+	})
 }

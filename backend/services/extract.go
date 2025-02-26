@@ -13,79 +13,65 @@ import (
 	"gocv.io/x/gocv"
 )
 
-func ExtractColors(imagePath, outputDir string, k int) error {
-	fmt.Println("[DEBUG] Extracting colors from:", imagePath)
-	fmt.Println("[DEBUG] Output directory:", outputDir)
-
-	img := gocv.IMRead(imagePath, gocv.IMReadColor)
+func ExtractColors(imagePath, outputDir string, k int) ([]string, error) {
+	img := gocv.IMRead(imagePath, gocv.IMReadUnchanged)
 	if img.Empty() {
-		fmt.Println("[ERROR] Could not read image")
-		return fmt.Errorf("could not read image")
+		return nil, fmt.Errorf("could not read image")
 	}
 	defer img.Close()
 
 	rows, cols := img.Rows(), img.Cols()
+	hasAlpha := img.Channels() == 4
 	data := make([]float64, 0, rows*cols*3)
+	alphaChannel := make([]uint8, rows*cols)
 
 	for y := 0; y < rows; y++ {
 		for x := 0; x < cols; x++ {
 			pixel := img.GetVecbAt(y, x)
 			data = append(data, float64(pixel[2]), float64(pixel[1]), float64(pixel[0]))
+			if hasAlpha {
+				alphaChannel[y*cols+x] = pixel[3]
+			} else {
+				alphaChannel[y*cols+x] = 255
+			}
 		}
 	}
 
 	points := mat.NewDense(len(data)/3, 3, data)
 	centroids, labels := KMeans(points, k)
 
-	if len(centroids) == 0 {
-		fmt.Println("[ERROR] No centroids generated")
-		return fmt.Errorf("no centroids generated")
-	}
+	_ = os.MkdirAll(outputDir, os.ModePerm)
 
-	err := os.MkdirAll(outputDir, os.ModePerm)
-	if err != nil {
-		fmt.Println("[ERROR] Failed to create output directory:", err)
-		return err
-	}
+	extractedFiles := []string{}
 
 	for i, center := range centroids {
 		layer := image.NewRGBA(image.Rect(0, 0, cols, rows))
 		hexColor := fmt.Sprintf("%02X%02X%02X", uint8(center[0]), uint8(center[1]), uint8(center[2]))
-
-		fmt.Println("[DEBUG] Creating layer for:", hexColor)
 
 		for y := 0; y < rows; y++ {
 			for x := 0; x < cols; x++ {
 				index := y*cols + x
 				if index < len(labels) && labels[index] == i {
 					layer.Set(x, y, color.RGBA{
-						R: uint8(center[0]), G: uint8(center[1]), B: uint8(center[2]), A: 255,
+						R: uint8(center[0]), G: uint8(center[1]), B: uint8(center[2]),
+						A: alphaChannel[index], // Maintain transparency if available
 					})
 				}
 			}
 		}
 
 		filePath := filepath.Join(outputDir, fmt.Sprintf("%s.png", hexColor))
-		file, err := os.Create(filePath)
-		if err != nil {
-			fmt.Println("[ERROR] Failed to create file:", filePath, err)
-			continue
-		}
-
-		err = png.Encode(file, layer)
-		if err != nil {
-			fmt.Println("[ERROR] Failed to encode PNG:", filePath, err)
-		} else {
-			fmt.Println("[DEBUG] Saved:", filePath)
-		}
-
+		file, _ := os.Create(filePath)
+		png.Encode(file, layer)
 		file.Close()
+
+		extractedFiles = append(extractedFiles, hexColor)
 	}
 
-	fmt.Println("[DEBUG] Extraction complete")
-	return nil
+	return extractedFiles, nil
 }
 
+// KMeans implementation using basic clustering
 func KMeans(data *mat.Dense, k int) ([][]float64, []int) {
 	rows, _ := data.Dims()
 	labels := make([]int, rows)
