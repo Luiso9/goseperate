@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ListExtractedFiles returns a color list of extracted images
 func ListExtractedFiles(c *gin.Context) {
 	files := []string{}
 	outputDir := "extracted"

@@ -9,7 +9,6 @@ import (
 	"backend/services"
 )
 
-// ProcessImage extracts colors from an uploaded image
 func ProcessImage(c *gin.Context) {
 	id := c.Param("id")
 	numColors, err := strconv.Atoi(c.DefaultQuery("colors", "5"))

@@ -15,6 +15,7 @@ func main() {
 	router := gin.Default()
 
 	// Routes
+	router.Static("/uploads", "./uploads")
 	router.POST("/upload", handlers.UploadImage)
 	router.POST("/process/:id", handlers.ProcessImage)
 	router.GET("/download/:id", handlers.DownloadZip)

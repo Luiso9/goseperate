@@ -10,12 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// DownloadZip creates a ZIP archive for extracted layers
 func DownloadZip(c *gin.Context) {
 	id := c.Param("id")
 	zipPath := filepath.Join("extracted", id+".zip")
 
-	// Create ZIP file
 	zipFile, err := os.Create(zipPath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create ZIP file"})
@@ -26,7 +24,6 @@ func DownloadZip(c *gin.Context) {
 	zipWriter := zip.NewWriter(zipFile)
 	defer zipWriter.Close()
 
-	// Add extracted images to ZIP
 	files, _ := os.ReadDir(filepath.Join("extracted", id))
 	for _, file := range files {
 		f, _ := os.Open(filepath.Join("extracted", id, file.Name()))
@@ -36,7 +33,6 @@ func DownloadZip(c *gin.Context) {
 		io.Copy(w, f) // Copy file data to ZIP
 	}
 
-	// Serve ZIP file
 	c.File(zipPath)
 
 	// Cleanup
