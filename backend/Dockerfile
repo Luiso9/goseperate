@@ -1,22 +1,13 @@
-FROM golang:1.24.0 AS builder
-
-WORKDIR /app
-
-COPY go.mod go.sum ./
-RUN go mod tidy
-
-COPY . .
-
-RUN go build -o main .
-
 FROM debian:bookworm-slim
 
+# Set working directory
 WORKDIR /app
 
-COPY --from=builder /app/main .
+# Copy the manually built binary
+COPY build .
 
-RUN mkdir -p /app/uploads /app/extracted
+# Expose the port
+EXPOSE 8080
 
-EXPOSE 9330
-
-CMD ["./main"]
+# Command to run the app
+CMD ["./build"]
