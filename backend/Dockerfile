@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-FROM golang:1.24-bookworm AS base
-=======
-# Use a lightweight base image with Go
 FROM gocv:latest
->>>>>>> b88291fc230660b6a4090980983dababe45d16a6
 
 # Set the working directory inside the container
 WORKDIR /app
