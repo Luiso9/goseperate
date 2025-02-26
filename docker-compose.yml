@@ -1,12 +1,13 @@
 services:
   backend:
-    build:
-      context: ./backend  
-      dockerfile: Dockerfile
-    container_name: go_backend
+    image: debian:bookworm-slim  
+    container_name: go-backend
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - /home/driannsa/goseperate/backend:/app
+      - /home/driannsa/goseperate/backend/extracted:/app/extracted
+      - /home/driannsa/goseperate/backend/uploads:/app/uploads
+    command: ["/app/myapp"]
     ports:
       - "9330:9330"
-    volumes:
-      - ./backend/uploads:/app/uploads
-      - ./backend/extracted:/app/extracted
-    restart: always
