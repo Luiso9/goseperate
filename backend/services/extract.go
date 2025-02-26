@@ -14,8 +14,12 @@ import (
 )
 
 func ExtractColors(imagePath, outputDir string, k int) error {
+	fmt.Println("[DEBUG] Extracting colors from:", imagePath)
+	fmt.Println("[DEBUG] Output directory:", outputDir)
+
 	img := gocv.IMRead(imagePath, gocv.IMReadColor)
 	if img.Empty() {
+		fmt.Println("[ERROR] Could not read image")
 		return fmt.Errorf("could not read image")
 	}
 	defer img.Close()
@@ -33,11 +37,22 @@ func ExtractColors(imagePath, outputDir string, k int) error {
 	points := mat.NewDense(len(data)/3, 3, data)
 	centroids, labels := KMeans(points, k)
 
-	os.MkdirAll(outputDir, os.ModePerm)
+	if len(centroids) == 0 {
+		fmt.Println("[ERROR] No centroids generated")
+		return fmt.Errorf("no centroids generated")
+	}
+
+	err := os.MkdirAll(outputDir, os.ModePerm)
+	if err != nil {
+		fmt.Println("[ERROR] Failed to create output directory:", err)
+		return err
+	}
 
 	for i, center := range centroids {
 		layer := image.NewRGBA(image.Rect(0, 0, cols, rows))
 		hexColor := fmt.Sprintf("%02X%02X%02X", uint8(center[0]), uint8(center[1]), uint8(center[2]))
+
+		fmt.Println("[DEBUG] Creating layer for:", hexColor)
 
 		for y := 0; y < rows; y++ {
 			for x := 0; x < cols; x++ {
@@ -51,11 +66,23 @@ func ExtractColors(imagePath, outputDir string, k int) error {
 		}
 
 		filePath := filepath.Join(outputDir, fmt.Sprintf("%s.png", hexColor))
-		file, _ := os.Create(filePath)
-		png.Encode(file, layer)
+		file, err := os.Create(filePath)
+		if err != nil {
+			fmt.Println("[ERROR] Failed to create file:", filePath, err)
+			continue
+		}
+
+		err = png.Encode(file, layer)
+		if err != nil {
+			fmt.Println("[ERROR] Failed to encode PNG:", filePath, err)
+		} else {
+			fmt.Println("[DEBUG] Saved:", filePath)
+		}
+
 		file.Close()
 	}
 
+	fmt.Println("[DEBUG] Extraction complete")
 	return nil
 }
 
