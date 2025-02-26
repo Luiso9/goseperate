@@ -11,3 +11,4 @@ services:
     command: ["/app/myapp"]
     ports:
       - "9330:9330"
+    entrypoint: ["/bin/sh", "-c", "apt update && apt install -y libopencv-dev && /app/myapp"]
