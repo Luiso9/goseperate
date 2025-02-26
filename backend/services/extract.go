@@ -11,6 +11,7 @@ import (
 
 	"gonum.org/v1/gonum/mat"
 	"gocv.io/x/gocv"
+	"bytes"
 )
 
 func ExtractColors(imagePath, outputDir string, k int) ([]string, error) {
@@ -144,7 +145,7 @@ func euclideanDistance(a, b []float64) float64 {
 func GeneratePreview(imagePath string, numColors int) ([]byte, error) {
 	img := gocv.IMRead(imagePath, gocv.IMReadColor)
 	if img.Empty() {
-		return nil, ErrInvalidImage
+		return nil, nil
 	}
 	defer img.Close()
 
@@ -176,7 +177,7 @@ func GeneratePreview(imagePath string, numColors int) ([]byte, error) {
 
 	finalImg, _ := result.ToImage()
 	buf := new(bytes.Buffer)
-	err := png.Encode(buf, finalImg, nil)
+	err := png.Encode(buf, finalImg)
 	if err != nil {
 		return nil, err
 	}
