@@ -4,31 +4,27 @@ import (
 	"net/http"
 	"strconv"
 
-  "github.com/gin-gonic/gin"
+  	"github.com/gin-gonic/gin"
 	"backend/services"
-  "backend/utils"
+	"path/filepath"
 )
 
 func PreviewHandler(c *gin.Context) {
-  filename := c.Param("filename")
+	id := c.Param("filename") 
+	imagePath := filepath.Join("uploads", id+".png") /
 
-  imagePath, err := utils.FindExistingFile("backend/uploads", filename)
-  if imagePath == "" {
-    c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
-    return
-  }
+	numColors, err := strconv.Atoi(c.DefaultQuery("color", "5"))
+	if err != nil || numColors <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid color parameter"})
+		return
+	}
 
-  numColors, err := strconv.Atoi(c.Query("color"))
-  if err != nil || numColors <= 0 {
-    c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid parameter"})
-    return
-  }
+	previewData, err := services.GeneratePreview(imagePath, numColors)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating preview: " + err.Error()})
+		return
+	}
 
-  previewData, err := services.GeneratePreview(imagePath, numColors)
-  if err != nil {
-    c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating preview" + err.Error()})
-    return
-  }
+	c.Data(http.StatusOK, "image/png", previewData)
+}
 
-  c.Data(http.StatusOK, "image/png", previewData)
-} 
