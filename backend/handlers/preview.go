@@ -1,30 +1,34 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
+  "github.com/gin-gonic/gin"
 	"backend/services"
+  "backend/utils"
 )
 
-func PreviewHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	imagePath := fmt.Sprintf("backend/uploads/%s", vars["filename"]) 
-	numColors, err := strconv.Atoi(r.URL.Query().Get("color"))
-	if err != nil || numColors <= 0 {
-		http.Error(w, "Invalid color parameter", http.StatusBadRequest)
-		return
-	}
+func PreviewHandler(c *gin.Context) {
+  filename := c.Param("filename")
 
-	previewData, err := services.GeneratePreview(imagePath, numColors)
-	if err != nil {
-		http.Error(w, "Error generating preview: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+  imagePath, err := utils.FindExistingFile("backend/uploads", filename)
+  if imagePath == "" {
+    c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
+    return
+  }
 
-	w.Header().Set("Content-Type", "image/png")
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(previewData)
-}
+  numColors, err := strconv.Atoi(c.Query("color"))
+  if err != nil || numColors <= 0 {
+    c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid parameter"})
+    return
+  }
+
+  previewData, err := services.GeneratePreview(imagePath, numColors)
+  if err != nil {
+    c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating preview" + err.Error()})
+    return
+  }
+
+  c.Data(http.StatusOK, "image/png", previewData)
+} 

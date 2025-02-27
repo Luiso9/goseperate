@@ -5,7 +5,6 @@ go 1.23.6
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
-	github.com/gorilla/mux v1.8.1
 	gocv.io/x/gocv v0.40.0
 	gonum.org/v1/gonum v0.15.1
 )
