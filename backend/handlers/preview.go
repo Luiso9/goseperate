@@ -11,7 +11,7 @@ import (
 
 func PreviewHandler(c *gin.Context) {
 	id := c.Param("filename") 
-	imagePath := filepath.Join("uploads", id+".png") 
+	imagePath := filepath.Join("uploads", id+".png") // append .png to filename
 
 	numColors, err := strconv.Atoi(c.DefaultQuery("color", "5"))
 	if err != nil || numColors <= 0 {

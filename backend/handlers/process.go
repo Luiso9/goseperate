@@ -17,7 +17,7 @@ func ProcessImage(c *gin.Context) {
 		return
 	}
 
-	imagePath := filepath.Join("uploads", id+".png")
+	imagePath := filepath.Join("uploads", id+".png") // append .png to filename
 	outputDir := filepath.Join("extracted", id)
 
 	extractedFiles, err := services.ExtractColors(imagePath, outputDir, numColors)
