@@ -2,29 +2,27 @@ package handlers
 
 import (
 	"net/http"
+	"path/filepath"
 	"strconv"
 
-  "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 	"backend/services"
-	"path/filepath"
 )
 
 func PreviewHandler(c *gin.Context) {
-	id := c.Param("filename") 
-	imagePath := filepath.Join("uploads", id+".png") // append .png to filename
+	id := c.Param("id")
+	imagePath := filepath.Join("uploads", id+".png") // Append .png
 
-	numColors, err := strconv.Atoi(c.DefaultQuery("color", "5"))
-	if err != nil || numColors <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid color parameter"})
-		return
+	numColors := 5 
+	if c.Query("color") != "" {
+		numColors, _ = strconv.Atoi(c.Query("color"))
 	}
 
 	previewData, err := services.GeneratePreview(imagePath, numColors)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating preview: " + err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate preview"})
 		return
 	}
 
 	c.Data(http.StatusOK, "image/png", previewData)
 }
-
