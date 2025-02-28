@@ -143,42 +143,56 @@ func euclideanDistance(a, b []float64) float64 {
 }
 
 func GeneratePreview(imagePath string, numColors int) ([]byte, error) {
-	img := gocv.IMRead(imagePath, gocv.IMReadColor)
+	img := gocv.IMRead(imagePath, gocv.IMReadUnchanged)
 	if img.Empty() {
-		return nil, nil
+		return nil, fmt.Errorf("could not read image")
 	}
 	defer img.Close()
 
-	samples := gocv.NewMat()
-	defer samples.Close()
-	img.ConvertTo(&samples, gocv.MatTypeCV32F)
-	samples = samples.Reshape(1, img.Rows()*img.Cols())
+	rows, cols := img.Rows(), img.Cols()
+	data := make([]float64, 0, rows*cols*3)
 
-	criteria := gocv.NewTermCriteria(gocv.Count|gocv.EPS, 10, 1.0)
-	labels := gocv.NewMat()
-	centers := gocv.NewMat()
-	defer labels.Close()
-	defer centers.Close()
-
-	gocv.KMeans(samples, numColors, &labels, criteria, 3, gocv.KMeansRandomCenters, &centers)
-
-	result := gocv.NewMatWithSize(img.Rows(), img.Cols(), gocv.MatTypeCV8UC3)
-	defer result.Close()
-
-	for i := 0; i < img.Rows(); i++ {
-		for j := 0; j < img.Cols(); j++ {
-			clusterIdx := int(labels.GetIntAt(i*img.Cols()+j, 0))
-			rgb := centers.GetVecfAt(clusterIdx, 0)
-
-			result.SetUCharAt3(i, j, 2, uint8(rgb[0])) // Set Red
-			result.SetUCharAt3(i, j, 1, uint8(rgb[1])) // Set Green
-			result.SetUCharAt3(i, j, 0, uint8(rgb[2])) // Set Blue
+	for y := 0; y < rows; y++ {
+		for x := 0; x < cols; x++ {
+			pixel := img.GetVecbAt(y, x)
+			data = append(data, float64(pixel[2]), float64(pixel[1]), float64(pixel[0])) // Convert BGR to RGB
 		}
 	}
 
-	finalImg, _ := result.ToImage()
+	points := mat.NewDense(len(data)/3, 3, data)
+	centroids, labels := KMeans(points, numColors)
+
+	if len(centroids) == 0 || len(labels) == 0 {
+		return nil, fmt.Errorf("clustering failed, empty centroids or labels")
+	}
+
+	preview := image.NewRGBA(image.Rect(0, 0, cols, rows))
+
+	for y := 0; y < rows; y++ {
+		for x := 0; x < cols; x++ {
+			index := y*cols + x
+			if index >= len(labels) {
+				continue
+			}
+
+			clusterIdx := labels[index]
+			if clusterIdx < 0 || clusterIdx >= len(centroids) {
+				continue
+			}
+
+			c := centroids[clusterIdx]
+			preview.Set(x, y, color.RGBA{
+				R: uint8(c[0]),
+				G: uint8(c[1]),
+				B: uint8(c[2]),
+				A: 255,
+			})
+		}
+	}
+
+	// Convert to PNG
 	buf := new(bytes.Buffer)
-	err := png.Encode(buf, finalImg)
+	err := png.Encode(buf, preview)
 	if err != nil {
 		return nil, err
 	}
