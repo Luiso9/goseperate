@@ -6,6 +6,8 @@ import (
 
 	"backend/handlers"
 	"github.com/gin-gonic/gin"
+	"time"
+	"backend/utils"
 )
 
 func main() {
@@ -14,9 +16,10 @@ func main() {
 
 	router := gin.Default()
 
+	utils.StartCleanupRoutine(1*time.Minute, 10*time.Minute)
 	// Routes
 	router.Static("/uploads", "./uploads")
-  router.GET("/preview/:id", handlers.PreviewHandler)
+  	router.GET("/preview/:id", handlers.PreviewHandler)
 	router.POST("/upload", handlers.UploadImage)
 	router.POST("/process/:id", handlers.ProcessImage)
 	router.GET("/download/:id", handlers.DownloadZip)

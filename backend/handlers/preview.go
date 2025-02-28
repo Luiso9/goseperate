@@ -11,18 +11,21 @@ import (
 
 func PreviewHandler(c *gin.Context) {
 	id := c.Param("id")
-	imagePath := filepath.Join("uploads", id+".png") // Append .png
-
-	numColors := 5 
-	if c.Query("color") != "" {
-		numColors, _ = strconv.Atoi(c.Query("color"))
-	}
-
-	previewData, err := services.GeneratePreview(imagePath, numColors)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate preview"})
+	numColors, err := strconv.Atoi(c.DefaultQuery("colors", "16"))
+	if err != nil || numColors < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid color number"})
 		return
 	}
 
-	c.Data(http.StatusOK, "image/png", previewData)
+	imagePath := filepath.Join("uploads", id+".png")
+
+	previewData, err := services.GeneratePreview(imagePath, numColors)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Header("Content-Type", "image/png")
+	c.Writer.WriteHeader(http.StatusOK)
+	c.Writer.Write(previewData)
 }

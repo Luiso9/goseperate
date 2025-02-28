@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"backend/services"
 	"net/http"
 	"path/filepath"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"backend/services"
 )
 
 func ProcessImage(c *gin.Context) {
@@ -17,12 +17,12 @@ func ProcessImage(c *gin.Context) {
 		return
 	}
 
-	imagePath := filepath.Join("uploads", id+".png") // append .png to filename
+	imagePath := filepath.Join("uploads", id+".png")
 	outputDir := filepath.Join("extracted", id)
 
 	extractedFiles, err := services.ExtractColors(imagePath, outputDir, numColors)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process image"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process image", "details": err.Error()})
 		return
 	}
 
