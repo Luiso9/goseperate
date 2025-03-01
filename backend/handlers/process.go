@@ -17,10 +17,28 @@ func ProcessImage(c *gin.Context) {
 		return
 	}
 
+	d, err := strconv.Atoi(c.DefaultQuery("d", "9"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid d value"})
+		return
+	}
+
+	sigmaColor, err := strconv.Atoi(c.DefaultQuery("sigmaColor", "75"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sigmaColor value"})
+		return
+	}
+
+	sigmaSpace, err := strconv.Atoi(c.DefaultQuery("sigmaSpace", "75"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sigmaSpace value"})
+		return
+	}
+
 	imagePath := filepath.Join("uploads", id+".png")
 	outputDir := filepath.Join("extracted", id)
 
-	extractedFiles, err := services.ExtractColors(imagePath, outputDir, numColors)
+	extractedFiles, err := services.ExtractColors(imagePath, outputDir, numColors, d, sigmaColor, sigmaSpace)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process image", "details": err.Error()})
 		return
@@ -33,3 +51,4 @@ func ProcessImage(c *gin.Context) {
 		"extracted": extractedFiles,
 	})
 }
+

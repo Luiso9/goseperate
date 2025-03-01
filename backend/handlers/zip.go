@@ -62,10 +62,19 @@ func DownloadZip(c *gin.Context) {
 		}
 	}
 
-	zipWriter.Close()
+	err = zipWriter.Close() // Explicitly check for errors
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to finalize ZIP file"})
+		return
+	}
+
+	// Set proper headers
+	c.Writer.Header().Set("Content-Disposition", "attachment; filename="+id+".zip")
+	c.Writer.Header().Set("Content-Type", "application/zip")
 
 	c.File(zipPath)
 
+	// Cleanup after serving the file
 	go func() {
 		os.RemoveAll(sourceDir)
 		os.Remove(zipPath)

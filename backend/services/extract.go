@@ -9,8 +9,11 @@ import (
 	"os/exec"
 )
 
-func ExtractColors(imagePath, outputDir string, k int) ([]string, error) {
-	cmd := exec.Command("./sklearn-env/bin/python3", "scripts/cluster.py", imagePath, fmt.Sprintf("%d", k), outputDir)
+func ExtractColors(imagePath, outputDir string, k, d, sigmaColor, sigmaSpace int) ([]string, error) {
+	cmd := exec.Command("./sklearn-env/bin/python3", "scripts/cluster.py",
+		imagePath, fmt.Sprintf("%d", k), outputDir,
+		fmt.Sprintf("%d", d), fmt.Sprintf("%d", sigmaColor), fmt.Sprintf("%d", sigmaSpace),
+	)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 
@@ -34,12 +37,16 @@ func ExtractColors(imagePath, outputDir string, k int) ([]string, error) {
 	return result.Extracted, nil
 }
 
-func GeneratePreview(imagePath string, numColors int) ([]byte, error) {
+
+func GeneratePreview(imagePath string, numColors, d, sigmaColor, sigmaSpace int) ([]byte, error) {
 	pythonAPI := "http://localhost:5037/preview"
 
 	payload := map[string]interface{}{
-		"image_path": imagePath,
-		"num_colors": numColors,
+		"image_path":  imagePath,
+		"num_colors":  numColors,
+		"d":           d,
+		"sigmaColor":  sigmaColor,
+		"sigmaSpace":  sigmaSpace,
 	}
 	jsonData, _ := json.Marshal(payload)
 
