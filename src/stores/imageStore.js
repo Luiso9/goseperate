@@ -36,8 +36,8 @@ export const useImageStore = defineStore('image', {
           const response = await apiClient.post('/upload', { image_url: fileOrUrl })
 
           this.imageId = response.data.id
-          this.imageUrl = `/api/uploads/${response.data.path}`
-          this.previewUrl = `/api/preview/${this.imageId}?colors=4`
+          this.imageUrl = `https://go-backend-production-31bf.up.railway.app/uploads/${response.data.path}`
+          this.previewUrl = `https://go-backend-production-31bf.up.railway.app/preview/${this.imageId}?colors=4`
         } else if (fileOrUrl instanceof File) {
           if (!fileOrUrl.type.includes('image/png')) {
             this.error = 'Only PNG images are allowed'
@@ -56,8 +56,8 @@ export const useImageStore = defineStore('image', {
           })
 
           this.imageId = response.data.id
-          this.imageUrl = `/api/uploads/${response.data.path}`
-          this.previewUrl = `/api/preview/${this.imageId}?colors=4`
+          this.imageUrl = `https://go-backend-production-31bf.up.railway.app/uploads/${response.data.path}`
+          this.previewUrl = `https://go-backend-production-31bf.up.railway.app/preview/${this.imageId}?colors=4`
         } else {
           this.error = 'Invalid file format'
         }
@@ -86,7 +86,7 @@ export const useImageStore = defineStore('image', {
         await apiClient.post(
           `/process/${id}?colors=${colors}&d=${d}&sigmaColor=${sigmaColor}&sigmaSpace=${sigmaSpace}`,
         )
-        this.previewUrl = `/api/preview/${id}?colors=${colors}&d=${d}&sigmaColor=${sigmaColor}&sigmaSpace=${sigmaSpace}`
+        this.previewUrl = `https://go-backend-production-31bf.up.railway.app/preview/${id}?colors=${colors}&d=${d}&sigmaColor=${sigmaColor}&sigmaSpace=${sigmaSpace}`
       } catch (err) {
         this.error = 'Failed to process image'
       } finally {
