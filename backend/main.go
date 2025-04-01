@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
 	os.MkdirAll("uploads", os.ModePerm)
 	os.MkdirAll("extracted", os.ModePerm)
 
