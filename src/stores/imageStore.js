@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 
 const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: 'https://go-backend-production-31bf.up.railway.app',
   headers: { 'Content-Type': 'application/json', 'Content-Type': 'multipart/form-data' },
 })
 
