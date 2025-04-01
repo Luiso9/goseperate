@@ -7,6 +7,9 @@ const emit = defineEmits(['close'])
 const imageId = ref(imageStore.imageId || '')
 const colorsQuery = ref(localStorage.getItem('colorsQuery') || '4')
 const isMobile = ref(window.innerWidth <= 768)
+const d = ref(Number(localStorage.getItem('lastD')) || 10) // Default to 10
+const sigmaColor = ref(Number(localStorage.getItem('lastSigmaColor')) || 75) // Default to 75
+const sigmaSpace = ref(Number(localStorage.getItem('lastSigmaSpace')) || 75) // Default to 75
 
 const updateScreenSize = () => {
   isMobile.value = window.innerWidth <= 768
@@ -22,8 +25,26 @@ const process = async () => {
     return
   }
 
-  localStorage.setItem('colorsQuery', colorsQuery.value) 
-  await imageStore.processImage(imageId.value, colorsQuery.value)
+  // Save the last entered values to localStorage
+  localStorage.setItem('colorsQuery', colorsQuery.value)
+  localStorage.setItem('lastD', d.value)
+  localStorage.setItem('lastSigmaColor', sigmaColor.value)
+  localStorage.setItem('lastSigmaSpace', sigmaSpace.value)
+
+  imageStore.loading = true // Set loading to true
+  imageStore.processing = true // Set processing to true
+  try {
+    await imageStore.processImage(
+      imageId.value,
+      colorsQuery.value,
+      d.value,
+      sigmaColor.value,
+      sigmaSpace.value,
+    )
+  } finally {
+    imageStore.processing = false // Reset processing to false after completion
+    imageStore.loading = false // Reset loading to false after completion
+  }
   closeModal()
 }
 
@@ -81,6 +102,39 @@ watch(
           class="input input-bordered w-full"
         />
       </div>
+
+      <div>
+        <label for="d" class="block font-semibold my-2">D</label>
+        <input
+          type="number"
+          id="d"
+          v-model="d"
+          placeholder="Enter D value"
+          class="input input-bordered w-full"
+        />
+      </div>
+
+      <div>
+        <label for="sigma-color" class="block font-semibold my-2">Sigma Color</label>
+        <input
+          type="number"
+          id="sigma-color"
+          v-model="sigmaColor"
+          placeholder="Enter Sigma Color value"
+          class="input input-bordered w-full"
+        />
+      </div>
+
+      <div>
+        <label for="sigma-space" class="block font-semibold my-2">Sigma Space</label>
+        <input
+          type="number"
+          id="sigma-space"
+          v-model="sigmaSpace"
+          placeholder="Enter Sigma Space value"
+          class="input input-bordered w-full"
+        />
+      </div>
     </div>
 
     <button @click="process" :disabled="imageStore.processing" class="btn btn-primary mt-4 w-full">
@@ -91,7 +145,9 @@ watch(
 
   <!-- Drawer for Mobile -->
   <div v-else class="fixed inset-0 bg-black/50 flex items-end sm:hidden">
-    <div class="w-full bg-[#2e3440]/30 border-t border-gray-200/20 backdrop-blur-2xl shadow-lg ring-1 ring-black/5 isolate p-6 rounded-t-2xl modal-content">
+    <div
+      class="w-full bg-[#2e3440]/30 border-t border-gray-200/20 backdrop-blur-2xl shadow-lg ring-1 ring-black/5 isolate p-6 rounded-t-2xl modal-content"
+    >
       <h3 class="text-lg font-bold">Image Processing</h3>
       <p class="text-sm">Configure and process the selected image.</p>
 
@@ -118,6 +174,39 @@ watch(
             class="input input-bordered w-full"
           />
         </div>
+
+        <div>
+          <label for="d" class="block font-semibold my-2">D</label>
+          <input
+            type="number"
+            id="d"
+            v-model="d"
+            placeholder="Enter D value"
+            class="input input-bordered w-full"
+          />
+        </div>
+
+        <div>
+          <label for="sigma-color" class="block font-semibold my-2">Sigma Color</label>
+          <input
+            type="number"
+            id="sigma-color"
+            v-model="sigmaColor"
+            placeholder="Enter Sigma Color value"
+            class="input input-bordered w-full focus:border-none focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label for="sigma-space" class="block font-semibold my-2">Sigma Space</label>
+          <input
+            type="number"
+            id="sigma-space"
+            v-model="sigmaSpace"
+            placeholder="Enter Sigma Space value"
+            class="input input-bordered w-full"
+          />
+        </div>
       </div>
 
       <button
@@ -131,3 +220,9 @@ watch(
     </div>
   </div>
 </template>
+
+<style scoped>
+input:focus {
+  border: none;
+}
+</style>

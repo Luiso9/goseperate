@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
+const apiClient = axios.create({
+  baseURL: '/api',
+  headers: { 'Content-Type': 'application/json', 'Content-Type': 'multipart/form-data' },
+})
+
 export const useImageStore = defineStore('image', {
   state: () => ({
     uploading: false,
@@ -23,17 +28,13 @@ export const useImageStore = defineStore('image', {
 
       try {
         if (typeof fileOrUrl === 'string') {
-          if (!fileOrUrl.startsWith('http') || !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(fileOrUrl)) {
+          if (!fileOrUrl.startsWith('http')) {
             this.error = 'Invalid URL'
             return
           }
-          const response = await axios.post(
-            '/api/upload',
-            { image_url: fileOrUrl },
-            {
-              headers: { 'Content-Type': 'application/json' },
-            },
-          )
+
+          const response = await apiClient.post('/upload', { image_url: fileOrUrl })
+
           this.imageId = response.data.id
           this.imageUrl = `/api/uploads/${response.data.path}`
           this.previewUrl = `/api/preview/${this.imageId}?colors=4`
@@ -43,15 +44,17 @@ export const useImageStore = defineStore('image', {
             return
           }
           if (fileOrUrl.size > 5 * 1024 * 1024) {
-            // 5MB limit
             this.error = 'File size exceeds the 5MB limit'
             return
           }
+
           const formData = new FormData()
           formData.append('image', fileOrUrl)
-          const response = await axios.post('/api/upload', formData, {
+
+          const response = await apiClient.post('/upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           })
+
           this.imageId = response.data.id
           this.imageUrl = `/api/uploads/${response.data.path}`
           this.previewUrl = `/api/preview/${this.imageId}?colors=4`
@@ -65,7 +68,7 @@ export const useImageStore = defineStore('image', {
       }
     },
 
-    async processImage(id, colors = '4') {
+    async processImage(id, colors = '4', d = 0, sigmaColor = 0, sigmaSpace = 0) {
       if (!id) {
         this.error = 'Invalid image ID'
         return
@@ -75,8 +78,15 @@ export const useImageStore = defineStore('image', {
       this.error = null
 
       try {
-        await axios.post(`/api/process/${id}?colors=${colors}`)
-        this.previewUrl = `/api/preview/${id}?colors=${colors}`
+        // Save the last input values to local storage
+        localStorage.setItem('lastD', d)
+        localStorage.setItem('lastSigmaColor', sigmaColor)
+        localStorage.setItem('lastSigmaSpace', sigmaSpace)
+
+        await apiClient.post(
+          `/process/${id}?colors=${colors}&d=${d}&sigmaColor=${sigmaColor}&sigmaSpace=${sigmaSpace}`,
+        )
+        this.previewUrl = `/api/preview/${id}?colors=${colors}&d=${d}&sigmaColor=${sigmaColor}&sigmaSpace=${sigmaSpace}`
       } catch (err) {
         this.error = 'Failed to process image'
       } finally {
@@ -94,9 +104,11 @@ export const useImageStore = defineStore('image', {
       this.error = null
 
       try {
-        const response = await axios.get(`/api/download/${id}?colors=${colors}`, {
+        const response = await apiClient.get(`/download/${id}?colors=${colors}`, {
           responseType: 'blob',
+          headers: { Origin: window.location.origin },
         })
+
         const url = window.URL.createObjectURL(new Blob([response.data]))
         const link = document.createElement('a')
         link.href = url

@@ -1,4 +1,0 @@
-[service]
-name = "go-backend"
-build = "go build -o main main.go"
-start = "./main"

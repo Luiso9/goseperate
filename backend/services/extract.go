@@ -10,7 +10,7 @@ import (
 )
 
 func ExtractColors(imagePath, outputDir string, k, d, sigmaColor, sigmaSpace int) ([]string, error) {
-	cmd := exec.Command("./sklearn-env/bin/python3", "scripts/cluster.py",
+	cmd := exec.Command("python", "/app/scripts/cluster.py",
 		imagePath, fmt.Sprintf("%d", k), outputDir,
 		fmt.Sprintf("%d", d), fmt.Sprintf("%d", sigmaColor), fmt.Sprintf("%d", sigmaSpace),
 	)

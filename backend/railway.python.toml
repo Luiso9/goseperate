@@ -1,4 +1,0 @@
-[service]
-name = "python-backend"
-build = "pip install -r requirements.txt"
-start = "python scripts/preview.py"

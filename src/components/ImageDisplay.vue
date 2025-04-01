@@ -5,7 +5,7 @@ import { computed } from 'vue'
 const imageStore = useImageStore()
 
 const imagePreviewUrl = computed(() => imageStore.previewUrl)
-const isLoading = computed(() => imageStore.loading)
+const isLoading = computed(() => imageStore.loading || imageStore.processing) // Include processing state
 const error = computed(() => imageStore.error)
 </script>
 
@@ -21,6 +21,7 @@ const error = computed(() => imageStore.error)
       <img
         :src="imagePreviewUrl"
         alt="Image Preview"
+        :class="{ 'blur-sm': isLoading }"
         class="rounded-lg object-contain w-9/12 max-h-[calc(100vh-4rem)]"
         style="padding: 2rem 0"
       />
