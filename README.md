@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # goseperate
 
 This template should help get you started developing with Vue 3 in Vite.
@@ -52,4 +51,3 @@ GoSeperate is a complete tool for extracting and separating colors from an image
 
 ## ⚡ Contributing
 Feel free to submit issues and pull requests! 🚀
->>>>>>> 646ce2aa9efdb08c918e24f76be609aa3ffe62b6
