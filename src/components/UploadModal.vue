@@ -46,6 +46,8 @@ const upload = async () => {
   if (imageStore.error) {
     errorMessage.value = imageStore.error
   } else {
+    // Store the original image URL in localStorage
+    localStorage.setItem('originalImageUrl', imageStore.imageUrl)
     selectedFile.value = null
     closeModal()
   }
@@ -89,12 +91,14 @@ onUnmounted(() => {
       <span v-else class="loading loading-spinner"></span>
     </button>
     <!-- Removed Close Button -->
+
+    
   </div>
 
   <!-- Drawer for Mobile -->
   <div v-else class="fixed inset-0 bg-black/50 flex items-end">
     <div
-      class="w-full bg-[#2e3440]/30 border-t border-gray-200/20 backdrop-blur-2xl shadow-lg ring-1 ring-black/5 isolate p-6 rounded-t-2xl modal-content"
+      class="w-full p-6 rounded-t-2xl bg-[#2e3440]/30 border-t border-gray-200/20 backdrop-blur-2xl shadow-lg ring-1 ring-black/5 isolate modal-content"
     >
       <h3 class="text-lg font-bold">Upload PNG Image</h3>
       <p class="text-sm">Select a PNG image to upload.</p>
